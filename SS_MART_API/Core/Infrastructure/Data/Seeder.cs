@@ -8,12 +8,28 @@ public static class Seeder
     {
         if (db.Products.Any()) return; // already seeded
 
-        // Categories
+        // Categories (8)
         var groceries = new Guid("10000000-0000-0000-0000-000000000001");
         var beverages = new Guid("10000000-0000-0000-0000-000000000002");
         var personal = new Guid("10000000-0000-0000-0000-000000000003");
         var snacks = new Guid("10000000-0000-0000-0000-000000000004");
         var dairy = new Guid("10000000-0000-0000-0000-000000000005");
+        var cleaning = new Guid("10000000-0000-0000-0000-000000000006");
+        var stationery = new Guid("10000000-0000-0000-0000-000000000007");
+        var others = new Guid("10000000-0000-0000-0000-000000000008");
+
+        var categories = new List<Category>
+        {
+            MakeCat("Groceries", "Essential food items", "#4CAF50", "local_grocery_store", 1, groceries),
+            MakeCat("Beverages", "Drinks and juices", "#2196F3", "local_bar", 2, beverages),
+            MakeCat("Snacks", "Chips, biscuits, and treats", "#FF9800", "cookie", 3, snacks),
+            MakeCat("Dairy", "Milk, butter, and cheese", "#FFEB3B", "egg_alt", 4, dairy),
+            MakeCat("Personal Care", "Soaps, shampoos, and hygiene", "#E91E63", "spa", 5, personal),
+            MakeCat("Cleaning", "Household cleaning products", "#00BCD4", "cleaning_services", 6, cleaning),
+            MakeCat("Stationery", "Pens, notebooks, and office", "#9C27B0", "edit", 7, stationery),
+            MakeCat("Others", "Miscellaneous items", "#607D8B", "category", 8, others),
+        };
+        db.Categories.AddRange(categories);
 
         // Products (25 items)
         var products = new List<Product>
@@ -66,6 +82,19 @@ public static class Seeder
         var emp1 = new Employee { Id = Guid.NewGuid(), FullName = "Ravi Kumar", Username = "ravi", PasswordHash = "ravi123", Role = "cashier", Pin = "1234", IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
         var emp2 = new Employee { Id = Guid.NewGuid(), FullName = "Sneha Reddy", Username = "sneha", PasswordHash = "sneha123", Role = "manager", Pin = "5678", IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
         db.Employees.AddRange(emp1, emp2);
+
+        // Suppliers (3)
+        var supplier1 = new Guid("20000000-0000-0000-0000-000000000001");
+        var supplier2 = new Guid("20000000-0000-0000-0000-000000000002");
+        var supplier3 = new Guid("20000000-0000-0000-0000-000000000003");
+
+        var suppliers = new List<Supplier>
+        {
+            MakeSup("Hindustan Unilever Distributor", "9876500001", "hul@example.com", "123 Market Road", "Mumbai", "Maharashtra", "27AABCU9695R1ZV", "AABCU9695R", 500000, 125000, "net30", supplier1),
+            MakeSup("ITC Foods Distributor", "9876500002", "itc@example.com", "456 Industrial Area", "Delhi", "Delhi", "07AABCI1234F1Z5", "AABCI1234F", 300000, 75000, "net15", supplier2),
+            MakeSup("Local Farm Fresh", "9876500003", "farm@example.com", "789 Farm Road", "Pune", "Maharashtra", "27AABCL5678G1ZQ", "AABCL5678G", 100000, 30000, "cod", supplier3),
+        };
+        db.Suppliers.AddRange(suppliers);
 
         // Stock for each product
         var rng = new Random(42);
@@ -170,6 +199,28 @@ public static class Seeder
             Id = Guid.NewGuid(), Name = name, Phone = phone, Type = type,
             CreditLimit = creditLimit, CurrentBalance = balance,
             IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+        };
+    }
+
+    private static Category MakeCat(string name, string? description, string? color, string? icon, int sortOrder, Guid id)
+    {
+        return new Category
+        {
+            Id = id, Name = name, Description = description, Color = color,
+            Icon = icon, SortOrder = sortOrder,
+            CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+        };
+    }
+
+    private static Supplier MakeSup(string name, string? phone, string? email, string? address, string? city, string? state, string? gstin, string? pan, decimal creditLimit, decimal balance, string paymentTerms, Guid id)
+    {
+        return new Supplier
+        {
+            Id = id, Name = name, Phone = phone, Email = email, Address = address,
+            City = city, State = state, GSTIN = gstin, PAN = pan,
+            CreditLimit = creditLimit, CurrentBalance = balance,
+            PaymentTerms = paymentTerms, IsActive = true,
+            CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
         };
     }
 }

@@ -184,3 +184,154 @@ public class AuditLog : BaseEntity
     public string? IpAddress { get; set; }
     public string? DeviceId { get; set; }
 }
+
+public class Category : BaseEntity
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? Color { get; set; }
+    public string? Icon { get; set; }
+    public int SortOrder { get; set; }
+}
+
+public class Supplier : BaseEntity
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Phone { get; set; }
+    public string? Email { get; set; }
+    public string? Address { get; set; }
+    public string? City { get; set; }
+    public string? State { get; set; }
+    public string? GSTIN { get; set; }
+    public string? PAN { get; set; }
+    public decimal CreditLimit { get; set; }
+    public decimal CurrentBalance { get; set; }
+    public string PaymentTerms { get; set; } = "net30";
+    public bool IsActive { get; set; } = true;
+}
+
+public class PurchaseOrder : BaseEntity
+{
+    public string OrderNumber { get; set; } = string.Empty;
+    public Guid SupplierId { get; set; }
+    public DateTime OrderDate { get; set; }
+    public DateTime? ExpectedDeliveryDate { get; set; }
+    public decimal Subtotal { get; set; }
+    public decimal TaxAmount { get; set; }
+    public decimal DiscountAmount { get; set; }
+    public decimal TotalAmount { get; set; }
+    public string Status { get; set; } = "draft";
+    public string? Notes { get; set; }
+    public Guid CreatedBy { get; set; }
+
+    public virtual Supplier Supplier { get; set; } = null!;
+    public virtual ICollection<PurchaseOrderItem> Items { get; set; } = new List<PurchaseOrderItem>();
+}
+
+public class PurchaseOrderItem : BaseEntity
+{
+    public Guid PurchaseOrderId { get; set; }
+    public Guid ProductId { get; set; }
+    public double Quantity { get; set; }
+    public decimal UnitPrice { get; set; }
+    public decimal TaxAmount { get; set; }
+    public decimal TotalAmount { get; set; }
+    public double? ReceivedQuantity { get; set; }
+    public string? BatchNumber { get; set; }
+
+    public virtual PurchaseOrder PurchaseOrder { get; set; } = null!;
+    public virtual Product Product { get; set; } = null!;
+}
+
+public class SalesOrder : BaseEntity
+{
+    public string OrderNumber { get; set; } = string.Empty;
+    public Guid? CustomerId { get; set; }
+    public DateTime OrderDate { get; set; }
+    public DateTime? ExpectedDeliveryDate { get; set; }
+    public decimal Subtotal { get; set; }
+    public decimal TaxAmount { get; set; }
+    public decimal DiscountAmount { get; set; }
+    public decimal TotalAmount { get; set; }
+    public string Status { get; set; } = "draft";
+    public string? Notes { get; set; }
+    public Guid CreatedBy { get; set; }
+
+    public virtual Customer? Customer { get; set; }
+    public virtual ICollection<SalesOrderItem> Items { get; set; } = new List<SalesOrderItem>();
+}
+
+public class SalesOrderItem : BaseEntity
+{
+    public Guid SalesOrderId { get; set; }
+    public Guid ProductId { get; set; }
+    public double Quantity { get; set; }
+    public decimal UnitPrice { get; set; }
+    public decimal TaxAmount { get; set; }
+    public decimal TotalAmount { get; set; }
+    public double? DeliveredQuantity { get; set; }
+
+    public virtual SalesOrder SalesOrder { get; set; } = null!;
+    public virtual Product Product { get; set; } = null!;
+}
+
+public class DeliveryChallan : BaseEntity
+{
+    public string ChallanNumber { get; set; } = string.Empty;
+    public Guid? CustomerId { get; set; }
+    public Guid? SalesOrderId { get; set; }
+    public DateTime ChallanDate { get; set; }
+    public DateTime? ExpectedDeliveryDate { get; set; }
+    public string? VehicleNumber { get; set; }
+    public string? DriverName { get; set; }
+    public string? DriverPhone { get; set; }
+    public string Status { get; set; } = "pending";
+    public string? Notes { get; set; }
+    public Guid CreatedBy { get; set; }
+
+    public virtual Customer? Customer { get; set; }
+    public virtual SalesOrder? SalesOrder { get; set; }
+    public virtual ICollection<DeliveryChallanItem> Items { get; set; } = new List<DeliveryChallanItem>();
+}
+
+public class DeliveryChallanItem : BaseEntity
+{
+    public Guid DeliveryChallanId { get; set; }
+    public Guid ProductId { get; set; }
+    public double Quantity { get; set; }
+    public double? DeliveredQuantity { get; set; }
+    public string? Unit { get; set; }
+
+    public virtual DeliveryChallan DeliveryChallan { get; set; } = null!;
+    public virtual Product Product { get; set; } = null!;
+}
+
+public class LedgerEntry : BaseEntity
+{
+    public DateTime EntryDate { get; set; }
+    public string EntryType { get; set; } = string.Empty;
+    public string AccountHead { get; set; } = string.Empty;
+    public string? ReferenceType { get; set; }
+    public Guid? ReferenceId { get; set; }
+    public decimal Amount { get; set; }
+    public string? Description { get; set; }
+    public Guid CreatedBy { get; set; }
+}
+
+public class LabelTemplate : BaseEntity
+{
+    public string Name { get; set; } = string.Empty;
+    public string Type { get; set; } = "barcode";
+    public int Width { get; set; } = 58;
+    public int Height { get; set; } = 30;
+    public string? Layout { get; set; }
+    public bool IsDefault { get; set; }
+}
+
+public class Setting : BaseEntity
+{
+    public string Key { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
+    public string? Category { get; set; }
+    public string? Description { get; set; }
+}
