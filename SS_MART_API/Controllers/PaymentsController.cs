@@ -229,4 +229,194 @@ public class PaymentsController : ControllerBase
             byPaymentMode = byMode
         });
     }
+
+    [HttpGet("aging")]
+    public async Task<ActionResult<object>> GetAgingReport()
+    {
+        var today = DateTime.UtcNow.Date;
+        var customers = await _context.Customers
+            .Where(c => c.CurrentBalance > 0 && c.DeletedAt == null && c.IsActive)
+            .ToListAsync();
+
+        var agingBuckets = new
+        {
+            current = customers.Where(c => c.CurrentBalance > 0).Select(c => new
+            {
+                id = c.Id, name = c.Name, phone = c.Phone,
+                outstanding = c.CurrentBalance, bucket = "Current (0 days)"
+            }).ToList(),
+            overdue_1_30 = customers.Where(c => c.CurrentBalance > 0).Select(c => new
+            {
+                id = c.Id, name = c.Name, phone = c.Phone,
+                outstanding = c.CurrentBalance, bucket = "1-30 days overdue"
+            }).ToList(),
+            overdue_31_60 = new List<object>(),
+            overdue_61_90 = new List<object>(),
+            overdue_90_plus = new List<object>()
+        };
+
+        var bills = await _context.Bills
+            .Where(b => b.DueAmount > 0 && b.Status == "completed" && b.DeletedAt == null)
+            .ToListAsync();
+
+        var customerBills = bills.GroupBy(b => b.CustomerId);
+
+        var result = new List<object>();
+        foreach (var group in customerBills)
+        {
+            if (!group.Key.HasValue) continue;
+            var customer = customers.FirstOrDefault(c => c.Id == group.Key.Value);
+            if (customer == null) continue;
+
+            var oldestBill = group.OrderBy(b => b.BillDate).First();
+            var daysOverdue = (today - oldestBill.BillDate).Days;
+            var totalDue = group.Sum(b => b.DueAmount);
+
+            string bucket;
+            if (daysOverdue <= 30) bucket = "0-30 days";
+            else if (daysOverdue <= 60) bucket = "31-60 days";
+            else if (daysOverdue <= 90) bucket = "61-90 days";
+            else bucket = "90+ days";
+
+            result.Add(new
+            {
+                customerId = customer.Id,
+                customerName = customer.Name,
+                phone = customer.Phone,
+                totalDue,
+                oldestBillDate = oldestBill.BillDate,
+                daysOverdue,
+                bucket,
+                billCount = group.Count(),
+                bills = group.Select(b => new
+                {
+                    billId = b.Id,
+                    billNumber = b.BillNumber,
+                    billDate = b.BillDate,
+                    dueAmount = b.DueAmount,
+                    daysOverdue = (today - b.BillDate).Days
+                }).ToList()
+            });
+        }
+
+        var grouped = result
+            .GroupBy(r => ((dynamic)r).bucket)
+            .ToDictionary(g => g.Key, g => new
+            {
+                count = g.Count(),
+                totalAmount = g.Sum(r => ((dynamic)r).totalDue),
+                customers = g.ToList()
+            });
+
+        return Ok(new
+        {
+            buckets = grouped,
+            totalOutstanding = customers.Sum(c => c.CurrentBalance),
+            totalCustomers = customers.Count,
+            summary = new
+            {
+                totalBills = bills.Count,
+                totalOverdue = bills.Count(b => (today - b.BillDate).Days > 30),
+                avgDaysOverdue = bills.Any() ? bills.Average(b => (today - b.BillDate).Days) : 0
+            }
+        });
+    }
+
+    [HttpGet("reminders")]
+    public async Task<ActionResult<IEnumerable<PaymentReminder>>> GetReminders(
+        [FromQuery] string? status,
+        [FromQuery] string? reminderType,
+        [FromQuery] int page = 1,
+        [FromQuery] int perPage = 50)
+    {
+        var query = _context.PaymentReminders
+            .Include(r => r.Customer)
+            .Where(r => r.DeletedAt == null)
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(status))
+            query = query.Where(r => r.Status == status);
+
+        if (!string.IsNullOrEmpty(reminderType))
+            query = query.Where(r => r.ReminderType == reminderType);
+
+        return Ok(await query
+            .OrderByDescending(r => r.DaysOverdue)
+            .Skip((page - 1) * perPage)
+            .Take(perPage)
+            .ToListAsync());
+    }
+
+    [HttpPost("reminders")]
+    public async Task<ActionResult<PaymentReminder>> CreateReminder([FromBody] PaymentReminder reminder)
+    {
+        reminder.Id = Guid.NewGuid();
+        reminder.CreatedAt = DateTime.UtcNow;
+        reminder.UpdatedAt = DateTime.UtcNow;
+
+        _context.PaymentReminders.Add(reminder);
+        await _context.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetReminders), new { id = reminder.Id }, reminder);
+    }
+
+    [HttpPost("reminders/{id}/send")]
+    public async Task<IActionResult> SendReminder(Guid id)
+    {
+        var reminder = await _context.PaymentReminders.FindAsync(id);
+        if (reminder == null) return NotFound();
+
+        reminder.Status = "sent";
+        reminder.SentAt = DateTime.UtcNow;
+        reminder.ReminderCount++;
+        reminder.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    [HttpPost("reminders/bulk-send")]
+    public async Task<IActionResult> BulkSendReminders([FromBody] List<Guid> ids)
+    {
+        var reminders = await _context.PaymentReminders
+            .Where(r => ids.Contains(r.Id) && r.Status != "sent")
+            .ToListAsync();
+
+        foreach (var reminder in reminders)
+        {
+            reminder.Status = "sent";
+            reminder.SentAt = DateTime.UtcNow;
+            reminder.ReminderCount++;
+            reminder.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await _context.SaveChangesAsync();
+        return Ok(new { sent = reminders.Count });
+    }
+
+    [HttpGet("reminders/summary")]
+    public async Task<ActionResult<object>> GetReminderSummary()
+    {
+        var reminders = await _context.PaymentReminders
+            .Include(r => r.Customer)
+            .Where(r => r.DeletedAt == null)
+            .ToListAsync();
+
+        return Ok(new
+        {
+            total = reminders.Count,
+            pending = reminders.Count(r => r.Status == "pending"),
+            sent = reminders.Count(r => r.Status == "sent"),
+            failed = reminders.Count(r => r.Status == "failed"),
+            overdue = reminders.Count(r => r.ReminderType == "overdue"),
+            dueSoon = reminders.Count(r => r.ReminderType == "due_soon"),
+            totalAmountAtRisk = reminders.Where(r => r.ReminderType == "overdue").Sum(r => r.Amount),
+            byChannel = reminders.GroupBy(r => r.Channel).Select(g => new
+            {
+                channel = g.Key,
+                count = g.Count(),
+                totalAmount = g.Sum(r => r.Amount)
+            }).ToList()
+        });
+    }
 }

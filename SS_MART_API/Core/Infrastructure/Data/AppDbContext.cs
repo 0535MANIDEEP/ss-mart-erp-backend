@@ -39,6 +39,10 @@ public class AppDbContext : DbContext
     public DbSet<DayEndSession> DayEndSessions => Set<DayEndSession>();
     public DbSet<DayEndTransaction> DayEndTransactions => Set<DayEndTransaction>();
     public DbSet<ExpiryBatch> ExpiryBatches => Set<ExpiryBatch>();
+    public DbSet<Store> Stores => Set<Store>();
+    public DbSet<StockTransferOrder> StockTransferOrders => Set<StockTransferOrder>();
+    public DbSet<StockTransferItem> StockTransferItems => Set<StockTransferItem>();
+    public DbSet<PaymentReminder> PaymentReminders => Set<PaymentReminder>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -283,6 +287,37 @@ public class AppDbContext : DbContext
             entity.Property(e => e.BatchNumber).IsRequired().HasMaxLength(100);
             entity.Property(e => e.WriteOffAmount).HasPrecision(18, 2);
             entity.HasOne(e => e.Product).WithMany().HasForeignKey(e => e.ProductId);
+        });
+
+        modelBuilder.Entity<Store>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.Code).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<StockTransferOrder>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.TransferNumber).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.FromLocationId).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.ToLocationId).IsRequired().HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<StockTransferItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(e => e.TransferOrder).WithMany().HasForeignKey(e => e.TransferOrderId);
+            entity.HasOne(e => e.Product).WithMany().HasForeignKey(e => e.ProductId);
+        });
+
+        modelBuilder.Entity<PaymentReminder>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ReminderType).IsRequired().HasMaxLength(30);
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+            entity.Property(e => e.Channel).IsRequired().HasMaxLength(20);
+            entity.HasOne(e => e.Customer).WithMany().HasForeignKey(e => e.CustomerId);
         });
     }
 }

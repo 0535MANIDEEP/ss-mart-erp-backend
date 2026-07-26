@@ -490,3 +490,57 @@ public class ExpiryBatch : BaseEntity
 
     public virtual Product Product { get; set; } = null!;
 }
+
+public class Store : BaseEntity
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Code { get; set; }
+    public string? Address { get; set; }
+    public string? City { get; set; }
+    public string? Phone { get; set; }
+    public string? ManagerName { get; set; }
+    public bool IsMain { get; set; }
+    public bool IsActive { get; set; } = true;
+}
+
+public class StockTransferOrder : BaseEntity
+{
+    public string TransferNumber { get; set; } = string.Empty;
+    public string FromLocationId { get; set; } = "MAIN";
+    public string ToLocationId { get; set; } = "MAIN";
+    public DateTime TransferDate { get; set; }
+    public string Status { get; set; } = "pending";
+    public string? Notes { get; set; }
+    public Guid CreatedBy { get; set; }
+    public DateTime? ReceivedAt { get; set; }
+    public Guid? ReceivedBy { get; set; }
+}
+
+public class StockTransferItem : BaseEntity
+{
+    public Guid TransferOrderId { get; set; }
+    public Guid ProductId { get; set; }
+    public int Quantity { get; set; }
+    public int? ReceivedQuantity { get; set; }
+    public string? BatchNumber { get; set; }
+
+    public virtual StockTransferOrder TransferOrder { get; set; } = null!;
+    public virtual Product Product { get; set; } = null!;
+}
+
+public class PaymentReminder : BaseEntity
+{
+    public Guid CustomerId { get; set; }
+    public string ReminderType { get; set; } = "overdue";
+    public decimal Amount { get; set; }
+    public int DaysOverdue { get; set; }
+    public string Channel { get; set; } = "sms";
+    public string Status { get; set; } = "pending";
+    public DateTime? SentAt { get; set; }
+    public string? Message { get; set; }
+    public string? ErrorMessage { get; set; }
+    public int ReminderCount { get; set; }
+    public DateTime? NextReminderAt { get; set; }
+
+    public virtual Customer Customer { get; set; } = null!;
+}

@@ -279,6 +279,21 @@ public static class Seeder
             new ExpiryBatch { Id = Guid.NewGuid(), ProductId = products[8].Id, BatchNumber = "BATCH-CC7-2025", Quantity = 25, ManufacturingDate = DateTime.UtcNow.AddMonths(-3), ExpiryDate = DateTime.UtcNow.AddMonths(6), Status = "active", CreatedAt = DateTime.UtcNow.AddDays(-45), UpdatedAt = DateTime.UtcNow.AddDays(-45) }
         );
 
+        // Stores
+        db.Stores.AddRange(
+            new Store { Id = Guid.NewGuid(), Name = "SS Mart — Main Branch", Code = "MAIN", Address = "123 Market Road", City = "Hyderabad", Phone = "040-12345678", ManagerName = "Sneha Reddy", IsMain = true, IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new Store { Id = Guid.NewGuid(), Name = "SS Mart — Branch 2", Code = "BR2", Address = "456 Commercial Street", City = "Hyderabad", Phone = "040-87654321", ManagerName = "Ravi Kumar", IsMain = false, IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new Store { Id = Guid.NewGuid(), Name = "SS Mart — Warehouse", Code = "WH1", Address = "789 Industrial Area", City = "Hyderabad", Phone = "040-11223344", ManagerName = "Sneha Reddy", IsMain = false, IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+        );
+
+        // Payment reminders
+        db.PaymentReminders.AddRange(
+            new PaymentReminder { Id = Guid.NewGuid(), CustomerId = customers[0].Id, ReminderType = "overdue", Amount = 12000, DaysOverdue = 15, Channel = "sms", Status = "sent", Message = "Dear Rajesh Kumar, your outstanding of ₹12000 is overdue. Please pay at the earliest.", ReminderCount = 1, SentAt = DateTime.UtcNow.AddDays(-5), CreatedAt = DateTime.UtcNow.AddDays(-5), UpdatedAt = DateTime.UtcNow.AddDays(-5) },
+            new PaymentReminder { Id = Guid.NewGuid(), CustomerId = customers[2].Id, ReminderType = "overdue", Amount = 22000, DaysOverdue = 10, Channel = "sms", Status = "sent", Message = "Dear Amit Patel, your outstanding of ₹22000 is overdue. Please pay at the earliest.", ReminderCount = 1, SentAt = DateTime.UtcNow.AddDays(-3), CreatedAt = DateTime.UtcNow.AddDays(-3), UpdatedAt = DateTime.UtcNow.AddDays(-3) },
+            new PaymentReminder { Id = Guid.NewGuid(), CustomerId = customers[6].Id, ReminderType = "overdue", Amount = 45000, DaysOverdue = 30, Channel = "email", Status = "pending", Message = "Dear Suresh Traders, your outstanding of ₹45000 is significantly overdue.", ReminderCount = 2, NextReminderAt = DateTime.UtcNow.AddDays(1), CreatedAt = DateTime.UtcNow.AddDays(-10), UpdatedAt = DateTime.UtcNow.AddDays(-10) },
+            new PaymentReminder { Id = Guid.NewGuid(), CustomerId = customers[4].Id, ReminderType = "due_soon", Amount = 3200, DaysOverdue = 0, Channel = "sms", Status = "sent", Message = "Dear Mohammed Ali, your payment of ₹3200 is due soon. Please plan accordingly.", ReminderCount = 1, SentAt = DateTime.UtcNow.AddDays(-1), CreatedAt = DateTime.UtcNow.AddDays(-1), UpdatedAt = DateTime.UtcNow.AddDays(-1) }
+        );
+
         db.SaveChanges();
     }
 
