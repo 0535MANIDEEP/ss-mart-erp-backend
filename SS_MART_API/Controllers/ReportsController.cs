@@ -163,4 +163,114 @@ public class ReportsController : ControllerBase
             summary
         });
     }
+
+    [HttpGet("hsn-summary")]
+    public async Task<ActionResult<object>> GetHsnSummaryReport(
+        [FromQuery] string startDate,
+        [FromQuery] string endDate)
+    {
+        if (!DateTime.TryParse(startDate, out var start) ||
+            !DateTime.TryParse(endDate, out var end))
+        {
+            return BadRequest(new { message = "Invalid date format" });
+        }
+
+        var billItems = await _context.BillItems
+            .Include(bi => bi.Bill)
+            .Include(bi => bi.Product)
+            .Where(bi => bi.Bill.BillDate >= start
+                && bi.Bill.BillDate <= end
+                && !bi.Bill.IsReturn
+                && bi.Bill.DeletedAt == null)
+            .ToListAsync();
+
+        var hsnSummary = billItems
+            .GroupBy(bi => new
+            {
+                HsnCode = bi.Product?.HSNCode ?? "UNKNOWN",
+                TaxRate = bi.Product?.TaxRate ?? 0
+            })
+            .Select(g => new
+            {
+                hsnCode = g.Key.HsnCode,
+                taxRate = g.Key.TaxRate,
+                totalQuantity = g.Sum(bi => bi.Quantity),
+                taxableAmount = g.Sum(bi => bi.UnitPrice * (decimal)bi.Quantity),
+                cgstAmount = g.Sum(bi => bi.CgstAmount),
+                sgstAmount = g.Sum(bi => bi.SgstAmount),
+                igstAmount = g.Sum(bi => bi.IgstAmount),
+                totalTax = g.Sum(bi => bi.TaxAmount),
+                totalAmount = g.Sum(bi => bi.TotalAmount),
+                itemCount = g.Count()
+            })
+            .OrderBy(h => h.hsnCode)
+            .ThenBy(h => h.taxRate)
+            .ToList();
+
+        var summary = new
+        {
+            totalHsnCodes = hsnSummary.Count(),
+            totalTaxableAmount = hsnSummary.Sum(h => h.taxableAmount),
+            totalCgst = hsnSummary.Sum(h => h.cgstAmount),
+            totalSgst = hsnSummary.Sum(h => h.sgstAmount),
+            totalIgst = hsnSummary.Sum(h => h.igstAmount),
+            totalTax = hsnSummary.Sum(h => h.totalTax),
+            totalItems = hsnSummary.Sum(h => h.itemCount)
+        };
+
+        return Ok(new
+        {
+            summary,
+            hsnDetails = hsnSummary
+        });
+    }
+
+    [HttpGet("profit-loss")]
+    public async Task<ActionResult<object>> GetProfitLossReport(
+        [FromQuery] string startDate,
+        [FromQuery] string endDate)
+    {
+        if (!DateTime.TryParse(startDate, out var start) ||
+            !DateTime.TryParse(endDate, out var end))
+        {
+            return BadRequest(new { message = "Invalid date format" });
+        }
+
+        var bills = await _context.Bills
+            .Where(b => b.BillDate >= start && b.BillDate <= end && !b.IsReturn && b.DeletedAt == null)
+            .ToListAsync();
+
+        var purchases = await _context.PurchaseOrders
+            .Where(p => p.OrderDate >= start && p.OrderDate <= end && p.DeletedAt == null)
+            .ToListAsync();
+
+        var totalRevenue = bills.Sum(b => b.TotalAmount);
+        var totalCost = purchases.Sum(p => p.TotalAmount);
+        var grossProfit = totalRevenue - totalCost;
+        var taxCollected = bills.Sum(b => b.TaxAmount);
+        var taxPaidOnPurchases = purchases.Sum(p => p.TaxAmount);
+
+        return Ok(new
+        {
+            summary = new
+            {
+                totalRevenue,
+                totalCost,
+                grossProfit,
+                taxCollected,
+                taxPaidOnPurchases,
+                netTaxLiability = taxCollected - taxPaidOnPurchases
+            },
+            dailyBreakdown = bills
+                .GroupBy(b => b.BillDate.Date)
+                .Select(g => new
+                {
+                    date = g.Key.ToString("yyyy-MM-dd"),
+                    revenue = g.Sum(b => b.TotalAmount),
+                    bills = g.Count()
+                })
+                .OrderBy(d => d.date)
+                .ToList()
+        });
+    }
 }

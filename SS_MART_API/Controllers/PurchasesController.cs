@@ -147,4 +147,108 @@ public class PurchasesController : ControllerBase
         await _context.SaveChangesAsync();
         return NoContent();
     }
+
+    [HttpPost("{id}/receive")]
+    public async Task<ActionResult<PurchaseOrder>> ReceiveGoods(
+        Guid id,
+        [FromBody] ReceiveRequest request)
+    {
+        var order = await _context.PurchaseOrders
+            .Include(p => p.Items).ThenInclude(i => i.Product)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (order == null)
+        {
+            return NotFound(new { message = "Purchase order not found" });
+        }
+
+        if (order.Status == "received" || order.Status == "cancelled")
+        {
+            return BadRequest(new { message = $"Cannot receive goods for order with status '{order.Status}'" });
+        }
+
+        if (request.ReceivedItems == null || !request.ReceivedItems.Any())
+        {
+            return BadRequest(new { message = "Received items are required" });
+        }
+
+        var allFullyReceived = true;
+
+        foreach (var receivedItem in request.ReceivedItems)
+        {
+            var orderItem = order.Items.FirstOrDefault(i => i.Id == receivedItem.Id);
+            if (orderItem == null)
+            {
+                return BadRequest(new { message = $"Item {receivedItem.Id} not found in purchase order" });
+            }
+
+            orderItem.ReceivedQuantity += receivedItem.Quantity;
+            orderItem.UpdatedAt = DateTime.UtcNow;
+
+            if (orderItem.ReceivedQuantity < orderItem.Quantity)
+            {
+                allFullyReceived = false;
+            }
+
+            if (orderItem.Product != null)
+            {
+                orderItem.Product.CurrentStock += (int)receivedItem.Quantity;
+                orderItem.Product.UpdatedAt = DateTime.UtcNow;
+            }
+
+            var existingStock = await _context.Stocks
+                .FirstOrDefaultAsync(s =>
+                    s.ProductId == orderItem.ProductId &&
+                    s.BatchNumber == receivedItem.BatchNumber &&
+                    s.DeletedAt == null);
+
+            if (existingStock != null)
+            {
+                existingStock.Quantity += (int)receivedItem.Quantity;
+                existingStock.LastUpdated = DateTime.UtcNow;
+                existingStock.UpdatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                _context.Stocks.Add(new SS_MART_API.Core.Domain.Entities.Stock
+                {
+                    Id = Guid.NewGuid(),
+                    ProductId = orderItem.ProductId,
+                    Quantity = (int)receivedItem.Quantity,
+                    BatchNumber = receivedItem.BatchNumber,
+                    LocationId = "MAIN",
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    LastUpdated = DateTime.UtcNow,
+                    Version = 1,
+                    SyncStatus = "pending"
+                });
+            }
+        }
+
+        order.Status = allFullyReceived ? "received" : "partially_received";
+        order.UpdatedAt = DateTime.UtcNow;
+        order.Version++;
+
+        await _context.SaveChangesAsync();
+
+        var updatedOrder = await _context.PurchaseOrders
+            .Include(p => p.Items).ThenInclude(i => i.Product)
+            .Include(p => p.Supplier)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        return Ok(updatedOrder);
+    }
+}
+
+public class ReceiveRequest
+{
+    public List<ReceivedItemRequest>? ReceivedItems { get; set; }
+}
+
+public class ReceivedItemRequest
+{
+    public Guid Id { get; set; }
+    public double Quantity { get; set; }
+    public string? BatchNumber { get; set; }
 }
