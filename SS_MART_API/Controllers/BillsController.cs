@@ -143,6 +143,26 @@ public class BillsController : ControllerBase
         bill.UpdatedAt = DateTime.UtcNow;
         bill.BillNumber = await GenerateBillNumber();
 
+        if (bill.CustomerId.HasValue && bill.PaymentMode == "CREDIT" && bill.DueAmount > 0)
+        {
+            var customer = await _context.Customers
+                .FirstOrDefaultAsync(c => c.Id == bill.CustomerId.Value);
+
+            if (customer != null && customer.CreditLimit > 0)
+            {
+                var newBalance = customer.CurrentBalance + (long)bill.DueAmount;
+                if (newBalance > customer.CreditLimit)
+                {
+                    return BadRequest(new
+                    {
+                        message = $"Credit limit exceeded. Current balance: {customer.CurrentBalance}, "
+                            + $"Credit limit: {customer.CreditLimit}, "
+                            + $"This bill due: {bill.DueAmount}"
+                    });
+                }
+            }
+        }
+
         _context.Bills.Add(bill);
         await _context.SaveChangesAsync();
 
