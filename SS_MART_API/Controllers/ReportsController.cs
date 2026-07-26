@@ -282,4 +282,137 @@ public class ReportsController : ControllerBase
                 .ToList()
         });
     }
+
+    [HttpGet("gstr1")]
+    public async Task<ActionResult<object>> GetGSTR1Report(
+        [FromQuery] string startDate,
+        [FromQuery] string endDate)
+    {
+        if (!DateTime.TryParse(startDate, out var start) ||
+            !DateTime.TryParse(endDate, out var end))
+        {
+            return BadRequest(new { message = "Invalid date format" });
+        }
+
+        var bills = await _context.Bills
+            .Include(b => b.Items)
+            .ThenInclude(i => i.Product)
+            .Where(b => b.BillDate >= start && b.BillDate <= end && !b.IsReturn && b.DeletedAt == null)
+            .ToListAsync();
+
+        var invoiceDetails = bills.Select(b => new
+        {
+            invoiceNumber = b.InvoiceNumber ?? b.BillNumber,
+            invoiceDate = b.BillDate.ToString("yyyy-MM-dd"),
+            invoiceValue = b.TotalAmount,
+            taxableValue = b.Subtotal,
+            cgst = b.CgstAmount,
+            sgst = b.SgstAmount,
+            igst = b.IgstAmount,
+            placeOfSupply = "27-Maharashtra",
+            reverseCharge = false,
+            items = b.Items.Select(i => new
+            {
+                hsnCode = i.Product?.HSNCode ?? "UNKNOWN",
+                description = i.Product?.Name ?? "Unknown",
+                quantity = i.Quantity,
+                unitPrice = i.UnitPrice,
+                taxableValue = i.UnitPrice * (decimal)i.Quantity,
+                cgst = i.CgstAmount,
+                sgst = i.SgstAmount,
+                igst = i.IgstAmount
+            }).ToList()
+        }).ToList();
+
+        var hsnSummary = bills
+            .SelectMany(b => b.Items)
+            .GroupBy(i => new { Hsn = i.Product?.HSNCode ?? "UNKNOWN", Rate = i.Product?.TaxRate ?? 0 })
+            .Select(g => new
+            {
+                hsnCode = g.Key.Hsn,
+                uqc = "NOS",
+                totalQuantity = g.Sum(i => i.Quantity),
+                totalValue = g.Sum(i => i.UnitPrice * (decimal)i.Quantity),
+                taxableValue = g.Sum(i => i.UnitPrice * (decimal)i.Quantity),
+                cgst = g.Sum(i => i.CgstAmount),
+                sgst = g.Sum(i => i.SgstAmount),
+                igst = g.Sum(i => i.IgstAmount)
+            })
+            .OrderBy(h => h.hsnCode)
+            .ToList();
+
+        return Ok(new
+        {
+            period = new { from = start.ToString("yyyy-MM-dd"), to = end.ToString("yyyy-MM-dd") },
+            summary = new
+            {
+                totalInvoices = bills.Count,
+                totalTaxableValue = bills.Sum(b => b.Subtotal),
+                totalCgst = bills.Sum(b => b.CgstAmount),
+                totalSgst = bills.Sum(b => b.SgstAmount),
+                totalIgst = bills.Sum(b => b.IgstAmount),
+                totalInvoiceValue = bills.Sum(b => b.TotalAmount)
+            },
+            invoiceDetails,
+            hsnSummary
+        });
+    }
+
+    [HttpGet("gstr3b")]
+    public async Task<ActionResult<object>> GetGSTR3BReport(
+        [FromQuery] string startDate,
+        [FromQuery] string endDate)
+    {
+        if (!DateTime.TryParse(startDate, out var start) ||
+            !DateTime.TryParse(endDate, out var end))
+        {
+            return BadRequest(new { message = "Invalid date format" });
+        }
+
+        var bills = await _context.Bills
+            .Where(b => b.BillDate >= start && b.BillDate <= end && !b.IsReturn && b.DeletedAt == null)
+            .ToListAsync();
+
+        var purchases = await _context.PurchaseOrders
+            .Where(p => p.OrderDate >= start && p.OrderDate <= end && p.DeletedAt == null)
+            .ToListAsync();
+
+        var totalTaxableSales = bills.Sum(b => b.Subtotal);
+        var totalCgstOnSales = bills.Sum(b => b.CgstAmount);
+        var totalSgstOnSales = bills.Sum(b => b.SgstAmount);
+        var totalIgstOnSales = bills.Sum(b => b.IgstAmount);
+
+        var totalTaxablePurchases = purchases.Sum(p => p.Subtotal);
+        var totalCgstOnPurchases = purchases.Sum(p => p.TaxAmount / 2);
+        var totalSgstOnPurchases = purchases.Sum(p => p.TaxAmount / 2);
+
+        return Ok(new
+        {
+            period = new { from = start.ToString("yyyy-MM-dd"), to = end.ToString("yyyy-MM-dd") },
+            outwardSupplies = new
+            {
+                taxableValue = totalTaxableSales,
+                cgst = totalCgstOnSales,
+                sgst = totalSgstOnSales,
+                igst = totalIgstOnSales,
+                totalTax = totalCgstOnSales + totalSgstOnSales + totalIgstOnSales
+            },
+            inwardSupplies = new
+            {
+                taxableValue = totalTaxablePurchases,
+                cgst = totalCgstOnPurchases,
+                sgst = totalSgstOnPurchases,
+                totalItc = totalCgstOnPurchases + totalSgstOnPurchases
+            },
+            taxPayable = new
+            {
+                cgst = totalCgstOnSales - totalCgstOnPurchases,
+                sgst = totalSgstOnSales - totalSgstOnPurchases,
+                igst = totalIgstOnSales,
+                total = (totalCgstOnSales - totalCgstOnPurchases) +
+                        (totalSgstOnSales - totalSgstOnPurchases) +
+                        totalIgstOnSales
+            }
+        });
+    }
 }
