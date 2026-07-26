@@ -59,12 +59,34 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure pipeline
-if (app.Environment.IsDevelopment())
+// Initialize database — drop and recreate with EF Core schema
+using (var scope = app.Services.CreateScope())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureDeleted();
+    db.Database.EnsureCreated();
+
+    // Seed admin user
+    if (!db.Employees.Any())
+    {
+        db.Employees.Add(new SS_MART_API.Core.Domain.Entities.Employee
+        {
+            Id = Guid.NewGuid(),
+            FullName = "Administrator",
+            Username = "admin",
+            PasswordHash = "admin123",
+            Role = "admin",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+        db.SaveChanges();
+    }
 }
+
+// Configure pipeline
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
