@@ -241,6 +241,44 @@ public static class Seeder
             new CommissionEntry { Id = Guid.NewGuid(), EmployeeId = emp2.Id, BillId = bill1.Id, BillNumber = bill1.BillNumber, SaleAmount = bill1.TotalAmount, CommissionRate = 5, CommissionAmount = 22.10m, RuleType = "percentage", SaleDate = bill1.BillDate, Status = "paid", CommissionRuleId = rule2Id, PaidAt = billDate1, CreatedAt = billDate1, UpdatedAt = billDate1 }
         );
 
+        // Day-end session
+        var session1 = new DayEndSession
+        {
+            Id = Guid.NewGuid(),
+            EmployeeId = emp1.Id,
+            OpenedAt = DateTime.UtcNow.AddHours(-8),
+            ClosedAt = DateTime.UtcNow.AddHours(-1),
+            OpeningBalance = 5000,
+            ClosingBalance = 8204,
+            ExpectedCash = 8442,
+            ActualCash = 8204,
+            Discrepancy = -238,
+            TotalSales = 3442,
+            TotalReturns = 0,
+            TotalPaymentsMade = 0,
+            BillCount = 2,
+            Notes = "Short by ₹238 — likely incorrect change given",
+            Status = "closed",
+            DenominationSnapshot = "{\"2000\":2,\"500\":6,\"100\":14,\"50\":0,\"20\":2,\"10\":2}",
+            CreatedAt = DateTime.UtcNow.AddHours(-8),
+            UpdatedAt = DateTime.UtcNow.AddHours(-1)
+        };
+        db.DayEndSessions.Add(session1);
+
+        db.DayEndTransactions.AddRange(
+            new DayEndTransaction { Id = Guid.NewGuid(), SessionId = session1.Id, TransactionType = "sale", Amount = 442, ReferenceType = "bill", ReferenceId = bill1.Id, Description = "BILL-0001", PaymentMode = "CASH", CreatedAt = billDate1, UpdatedAt = billDate1 },
+            new DayEndTransaction { Id = Guid.NewGuid(), SessionId = session1.Id, TransactionType = "sale", Amount = 162, ReferenceType = "bill", ReferenceId = bill2.Id, Description = "BILL-0002", PaymentMode = "UPI", CreatedAt = bill2Date, UpdatedAt = bill2Date }
+        );
+
+        // Expiry batches
+        db.ExpiryBatches.AddRange(
+            new ExpiryBatch { Id = Guid.NewGuid(), ProductId = products[0].Id, BatchNumber = "BATCH-R1-2025", Quantity = 30, ManufacturingDate = DateTime.UtcNow.AddMonths(-10), ExpiryDate = DateTime.UtcNow.AddDays(15), Status = "active", CreatedAt = DateTime.UtcNow.AddDays(-90), UpdatedAt = DateTime.UtcNow.AddDays(-90) },
+            new ExpiryBatch { Id = Guid.NewGuid(), ProductId = products[5].Id, BatchNumber = "BATCH-M7-2025", Quantity = 50, ManufacturingDate = DateTime.UtcNow.AddMonths(-5), ExpiryDate = DateTime.UtcNow.AddDays(3), Status = "active", CreatedAt = DateTime.UtcNow.AddDays(-60), UpdatedAt = DateTime.UtcNow.AddDays(-60) },
+            new ExpiryBatch { Id = Guid.NewGuid(), ProductId = products[10].Id, BatchNumber = "BATCH-AB1-2025", Quantity = 20, ManufacturingDate = DateTime.UtcNow.AddMonths(-8), ExpiryDate = DateTime.UtcNow.AddDays(-2), Status = "expired", CreatedAt = DateTime.UtcNow.AddDays(-100), UpdatedAt = DateTime.UtcNow.AddDays(-2) },
+            new ExpiryBatch { Id = Guid.NewGuid(), ProductId = products[11].Id, BatchNumber = "BATCH-AM5-2025", Quantity = 40, ManufacturingDate = DateTime.UtcNow.AddMonths(-1), ExpiryDate = DateTime.UtcNow.AddDays(45), Status = "active", CreatedAt = DateTime.UtcNow.AddDays(-30), UpdatedAt = DateTime.UtcNow.AddDays(-30) },
+            new ExpiryBatch { Id = Guid.NewGuid(), ProductId = products[8].Id, BatchNumber = "BATCH-CC7-2025", Quantity = 25, ManufacturingDate = DateTime.UtcNow.AddMonths(-3), ExpiryDate = DateTime.UtcNow.AddMonths(6), Status = "active", CreatedAt = DateTime.UtcNow.AddDays(-45), UpdatedAt = DateTime.UtcNow.AddDays(-45) }
+        );
+
         db.SaveChanges();
     }
 

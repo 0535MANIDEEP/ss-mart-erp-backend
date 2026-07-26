@@ -441,3 +441,52 @@ public class CommissionEntry : BaseEntity
 
     public virtual Employee Employee { get; set; } = null!;
 }
+
+public class DayEndSession : BaseEntity
+{
+    public Guid EmployeeId { get; set; }
+    public DateTime OpenedAt { get; set; }
+    public DateTime? ClosedAt { get; set; }
+    public decimal OpeningBalance { get; set; }
+    public decimal? ClosingBalance { get; set; }
+    public decimal ExpectedCash { get; set; }
+    public decimal ActualCash { get; set; }
+    public decimal? Discrepancy { get; set; }
+    public decimal TotalSales { get; set; }
+    public decimal TotalReturns { get; set; }
+    public decimal TotalPaymentsMade { get; set; }
+    public int BillCount { get; set; }
+    public string? Notes { get; set; }
+    public string Status { get; set; } = "open"; // open, closed, reconciled
+    public string? DenominationSnapshot { get; set; }
+
+    public virtual Employee Employee { get; set; } = null!;
+}
+
+public class DayEndTransaction : BaseEntity
+{
+    public Guid SessionId { get; set; }
+    public string TransactionType { get; set; } = string.Empty;
+    public decimal Amount { get; set; }
+    public string? ReferenceType { get; set; }
+    public Guid? ReferenceId { get; set; }
+    public string? Description { get; set; }
+    public string PaymentMode { get; set; } = "CASH";
+
+    public virtual DayEndSession Session { get; set; } = null!;
+}
+
+public class ExpiryBatch : BaseEntity
+{
+    public Guid ProductId { get; set; }
+    public string BatchNumber { get; set; } = string.Empty;
+    public int Quantity { get; set; }
+    public DateTime ManufacturingDate { get; set; }
+    public DateTime ExpiryDate { get; set; }
+    public string Status { get; set; } = "active";
+    public decimal? WriteOffAmount { get; set; }
+    public string? WriteOffReason { get; set; }
+    public DateTime? WrittenOffAt { get; set; }
+
+    public virtual Product Product { get; set; } = null!;
+}

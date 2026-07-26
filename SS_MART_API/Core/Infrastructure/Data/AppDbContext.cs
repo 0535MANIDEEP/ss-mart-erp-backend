@@ -36,6 +36,9 @@ public class AppDbContext : DbContext
     public DbSet<NotificationLog> NotificationLogs => Set<NotificationLog>();
     public DbSet<CommissionRule> CommissionRules => Set<CommissionRule>();
     public DbSet<CommissionEntry> CommissionEntries => Set<CommissionEntry>();
+    public DbSet<DayEndSession> DayEndSessions => Set<DayEndSession>();
+    public DbSet<DayEndTransaction> DayEndTransactions => Set<DayEndTransaction>();
+    public DbSet<ExpiryBatch> ExpiryBatches => Set<ExpiryBatch>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -250,6 +253,36 @@ public class AppDbContext : DbContext
             entity.Property(e => e.CommissionAmount).HasPrecision(18, 2);
             entity.Property(e => e.RuleType).IsRequired().HasMaxLength(30);
             entity.HasOne(e => e.Employee).WithMany().HasForeignKey(e => e.EmployeeId);
+        });
+
+        modelBuilder.Entity<DayEndSession>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.OpeningBalance).HasPrecision(18, 2);
+            entity.Property(e => e.ClosingBalance).HasPrecision(18, 2);
+            entity.Property(e => e.ExpectedCash).HasPrecision(18, 2);
+            entity.Property(e => e.ActualCash).HasPrecision(18, 2);
+            entity.Property(e => e.Discrepancy).HasPrecision(18, 2);
+            entity.Property(e => e.TotalSales).HasPrecision(18, 2);
+            entity.Property(e => e.TotalReturns).HasPrecision(18, 2);
+            entity.Property(e => e.TotalPaymentsMade).HasPrecision(18, 2);
+            entity.HasOne(e => e.Employee).WithMany().HasForeignKey(e => e.EmployeeId);
+        });
+
+        modelBuilder.Entity<DayEndTransaction>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.TransactionType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Amount).HasPrecision(18, 2);
+            entity.HasOne(e => e.Session).WithMany().HasForeignKey(e => e.SessionId);
+        });
+
+        modelBuilder.Entity<ExpiryBatch>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.BatchNumber).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.WriteOffAmount).HasPrecision(18, 2);
+            entity.HasOne(e => e.Product).WithMany().HasForeignKey(e => e.ProductId);
         });
     }
 }
