@@ -1,0 +1,8 @@
+D:\projects\ss-mart-erp\backend-api\SS_MART_API\obj\Debug\net8.0\SS_MART_API.csproj.AssemblyReference.cache
+D:\projects\ss-mart-erp\backend-api\SS_MART_API\obj\Debug\net8.0\SS_MART_API.GeneratedMSBuildEditorConfig.editorconfig
+D:\projects\ss-mart-erp\backend-api\SS_MART_API\obj\Debug\net8.0\SS_MART_API.AssemblyInfoInputs.cache
+D:\projects\ss-mart-erp\backend-api\SS_MART_API\obj\Debug\net8.0\SS_MART_API.AssemblyInfo.cs
+D:\projects\ss-mart-erp\backend-api\SS_MART_API\obj\Debug\net8.0\SS_MART_API.csproj.CoreCompileInputs.cache
+D:\projects\ss-mart-erp\backend-api\SS_MART_API\obj\Debug\net8.0\SS_MART_API.MvcApplicationPartsAssemblyInfo.cs
+D:\projects\ss-mart-erp\backend-api\SS_MART_API\obj\Debug\net8.0\SS_MART_API.MvcApplicationPartsAssemblyInfo.cache
+D:\projects\ss-mart-erp\backend-api\SS_MART_API\obj\Debug\net8.0\SS_MART_API.sourcelink.json

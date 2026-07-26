@@ -56,6 +56,10 @@ public class Bill : BaseEntity
     public DateTime BillDate { get; set; }
     public decimal Subtotal { get; set; }
     public decimal TaxAmount { get; set; }
+    public decimal CgstAmount { get; set; }
+    public decimal SgstAmount { get; set; }
+    public decimal IgstAmount { get; set; }
+    public string TaxRuleVersion { get; set; } = "v1";
     public decimal DiscountAmount { get; set; }
     public decimal RoundOff { get; set; }
     public decimal TotalAmount { get; set; }
@@ -80,6 +84,10 @@ public class BillItem : BaseEntity
     public decimal DiscountPercent { get; set; }
     public decimal DiscountAmount { get; set; }
     public decimal TaxAmount { get; set; }
+    public decimal CgstAmount { get; set; }
+    public decimal SgstAmount { get; set; }
+    public decimal IgstAmount { get; set; }
+    public string TaxRuleVersion { get; set; } = "v1";
     public decimal TotalAmount { get; set; }
     public string? BatchNumber { get; set; }
 
