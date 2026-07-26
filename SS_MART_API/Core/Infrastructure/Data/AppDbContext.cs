@@ -29,6 +29,8 @@ public class AppDbContext : DbContext
     public DbSet<LedgerEntry> LedgerEntries => Set<LedgerEntry>();
     public DbSet<LabelTemplate> LabelTemplates => Set<LabelTemplate>();
     public DbSet<Setting> Settings => Set<Setting>();
+    public DbSet<ExpenseCategory> ExpenseCategories => Set<ExpenseCategory>();
+    public DbSet<Expense> Expenses => Set<Expense>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -177,6 +179,21 @@ public class AppDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Key).IsRequired().HasMaxLength(255);
             entity.Property(e => e.Value).IsRequired().HasMaxLength(1000);
+        });
+
+        modelBuilder.Entity<ExpenseCategory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
+        });
+
+        modelBuilder.Entity<Expense>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ExpenseNumber).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Amount).HasColumnType("numeric(12,2)");
+            entity.Property(e => e.Payee).HasMaxLength(255);
+            entity.HasOne(e => e.ExpenseCategory).WithMany().HasForeignKey(e => e.ExpenseCategoryId);
         });
     }
 }

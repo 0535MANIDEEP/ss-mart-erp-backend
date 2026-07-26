@@ -250,6 +250,13 @@ public class ReportsController : ControllerBase
         var taxCollected = bills.Sum(b => b.TaxAmount);
         var taxPaidOnPurchases = purchases.Sum(p => p.TaxAmount);
 
+        var expenses = await _context.Expenses
+            .Where(e => e.ExpenseDate >= start && e.ExpenseDate <= end && e.DeletedAt == null)
+            .ToListAsync();
+
+        var totalExpenses = expenses.Sum(e => e.Amount);
+        var netProfit = grossProfit - totalExpenses;
+
         return Ok(new
         {
             summary = new
@@ -257,6 +264,8 @@ public class ReportsController : ControllerBase
                 totalRevenue,
                 totalCost,
                 grossProfit,
+                totalExpenses,
+                netProfit,
                 taxCollected,
                 taxPaidOnPurchases,
                 netTaxLiability = taxCollected - taxPaidOnPurchases

@@ -335,3 +335,32 @@ public class Setting : BaseEntity
     public string? Category { get; set; }
     public string? Description { get; set; }
 }
+
+public class ExpenseCategory : BaseEntity
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? Color { get; set; }
+    public string? Icon { get; set; }
+    public int SortOrder { get; set; }
+    public bool IsActive { get; set; } = true;
+}
+
+public class Expense : BaseEntity
+{
+    public string ExpenseNumber { get; set; } = string.Empty;
+    public Guid? ExpenseCategoryId { get; set; }
+    public DateTime ExpenseDate { get; set; }
+    public decimal Amount { get; set; }
+    public string PaymentMode { get; set; } = "CASH";
+    public string? Payee { get; set; }
+    public string? Description { get; set; }
+    public string? ReferenceType { get; set; }
+    public Guid? ReferenceId { get; set; }
+    public bool IsRecurring { get; set; }
+    public string? RecurringFrequency { get; set; }
+    public string Status { get; set; } = "completed";
+    public Guid CreatedBy { get; set; }
+
+    public virtual ExpenseCategory? ExpenseCategory { get; set; }
+}

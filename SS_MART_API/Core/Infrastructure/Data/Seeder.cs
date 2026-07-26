@@ -177,6 +177,34 @@ public static class Seeder
             new LoyaltyTransaction { Id = Guid.NewGuid(), CustomerId = customers[5].Id, TransactionType = "earn", Points = 16, ReferenceType = "bill", ReferenceId = bill2.Id, CreatedBy = emp1.Id, CreatedAt = bill2Date, UpdatedAt = bill2Date }
         );
 
+        // Expense categories
+        var expRent = new Guid("30000000-0000-0000-0000-000000000001");
+        var expUtilities = new Guid("30000000-0000-0000-0000-000000000002");
+        var expSalary = new Guid("30000000-0000-0000-0000-000000000003");
+        var expTransport = new Guid("30000000-0000-0000-0000-000000000004");
+        var expMarketing = new Guid("30000000-0000-0000-0000-000000000005");
+        var expMisc = new Guid("30000000-0000-0000-0000-000000000006");
+
+        var expenseCategories = new List<ExpenseCategory>
+        {
+            new ExpenseCategory { Id = expRent, Name = "Rent", Description = "Shop/office rent payments", Color = "#F44336", Icon = "home", SortOrder = 1, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new ExpenseCategory { Id = expUtilities, Name = "Utilities", Description = "Electricity, water, internet", Color = "#FF9800", Icon = "bolt", SortOrder = 2, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new ExpenseCategory { Id = expSalary, Name = "Salary", Description = "Employee salary payments", Color = "#4CAF50", Icon = "people", SortOrder = 3, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new ExpenseCategory { Id = expTransport, Name = "Transport", Description = "Delivery, fuel, logistics", Color = "#2196F3", Icon = "local_shipping", SortOrder = 4, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new ExpenseCategory { Id = expMarketing, Name = "Marketing", Description = "Advertising and promotions", Color = "#9C27B0", Icon = "campaign", SortOrder = 5, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new ExpenseCategory { Id = expMisc, Name = "Miscellaneous", Description = "Other operating expenses", Color = "#607D8B", Icon = "more_horiz", SortOrder = 6, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+        };
+        db.ExpenseCategories.AddRange(expenseCategories);
+
+        // Sample expenses
+        var exp1 = new Expense { Id = Guid.NewGuid(), ExpenseNumber = "EXP-0001", ExpenseCategoryId = expRent, ExpenseDate = DateTime.UtcNow.AddDays(-25), Amount = 25000, PaymentMode = "BANK", Payee = "Property Owner", Description = "January shop rent", CreatedBy = emp2.Id, CreatedAt = DateTime.UtcNow.AddDays(-25), UpdatedAt = DateTime.UtcNow.AddDays(-25) };
+        var exp2 = new Expense { Id = Guid.NewGuid(), ExpenseNumber = "EXP-0002", ExpenseCategoryId = expUtilities, ExpenseDate = DateTime.UtcNow.AddDays(-20), Amount = 3500, PaymentMode = "UPI", Payee = "Electricity Board", Description = "Electricity bill — January", CreatedBy = emp2.Id, CreatedAt = DateTime.UtcNow.AddDays(-20), UpdatedAt = DateTime.UtcNow.AddDays(-20) };
+        var exp3 = new Expense { Id = Guid.NewGuid(), ExpenseNumber = "EXP-0003", ExpenseCategoryId = expSalary, ExpenseDate = DateTime.UtcNow.AddDays(-10), Amount = 30000, PaymentMode = "BANK", Payee = "Ravi Kumar", Description = "Monthly salary — Ravi", CreatedBy = emp2.Id, CreatedAt = DateTime.UtcNow.AddDays(-10), UpdatedAt = DateTime.UtcNow.AddDays(-10) };
+        var exp4 = new Expense { Id = Guid.NewGuid(), ExpenseNumber = "EXP-0004", ExpenseCategoryId = expTransport, ExpenseDate = DateTime.UtcNow.AddDays(-5), Amount = 1800, PaymentMode = "CASH", Payee = "Fuel Station", Description = "Delivery van fuel refill", CreatedBy = emp1.Id, CreatedAt = DateTime.UtcNow.AddDays(-5), UpdatedAt = DateTime.UtcNow.AddDays(-5) };
+        var exp5 = new Expense { Id = Guid.NewGuid(), ExpenseNumber = "EXP-0005", ExpenseCategoryId = expMarketing, ExpenseDate = DateTime.UtcNow.AddDays(-3), Amount = 5000, PaymentMode = "UPI", Payee = "Print Shop", Description = "Pamphlets and banner printing", CreatedBy = emp2.Id, CreatedAt = DateTime.UtcNow.AddDays(-3), UpdatedAt = DateTime.UtcNow.AddDays(-3) };
+        var exp6 = new Expense { Id = Guid.NewGuid(), ExpenseNumber = "EXP-0006", ExpenseCategoryId = expUtilities, ExpenseDate = DateTime.UtcNow.AddDays(-2), Amount = 1200, PaymentMode = "CASH", Payee = "Internet Provider", Description = "Broadband monthly plan", CreatedBy = emp2.Id, CreatedAt = DateTime.UtcNow.AddDays(-2), UpdatedAt = DateTime.UtcNow.AddDays(-2) };
+        db.Expenses.AddRange(exp1, exp2, exp3, exp4, exp5, exp6);
+
         db.SaveChanges();
     }
 
