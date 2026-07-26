@@ -385,3 +385,59 @@ public class Payment : BaseEntity
     public virtual Customer? Customer { get; set; }
     public virtual Supplier? Supplier { get; set; }
 }
+
+public class NotificationTemplate : BaseEntity
+{
+    public string Name { get; set; } = string.Empty;
+    public string Type { get; set; } = "sms"; // sms, email, whatsapp
+    public string Event { get; set; } = string.Empty; // bill_created, payment_received, low_stock, etc.
+    public string Subject { get; set; } = string.Empty;
+    public string Body { get; set; } = string.Empty;
+    public bool IsActive { get; set; } = true;
+    public string? Description { get; set; }
+}
+
+public class NotificationLog : BaseEntity
+{
+    public string TemplateId { get; set; } = string.Empty;
+    public string RecipientType { get; set; } = string.Empty; // customer, supplier, employee
+    public string RecipientId { get; set; } = string.Empty;
+    public string RecipientContact { get; set; } = string.Empty;
+    public string Channel { get; set; } = "sms"; // sms, email, whatsapp
+    public string Status { get; set; } = "sent"; // sent, delivered, failed
+    public string? ErrorMessage { get; set; }
+    public string? ReferenceType { get; set; }
+    public string? ReferenceId { get; set; }
+    public DateTime? SentAt { get; set; }
+}
+
+public class CommissionRule : BaseEntity
+{
+    public string Name { get; set; } = string.Empty;
+    public string Type { get; set; } = "percentage"; // percentage, fixed_per_bill, fixed_per_item, tiered
+    public decimal Value { get; set; }
+    public decimal? MinBillAmount { get; set; }
+    public decimal? MaxBillAmount { get; set; }
+    public string? ProductCategory { get; set; }
+    public Guid? EmployeeId { get; set; }
+    public bool IsDefault { get; set; }
+    public bool IsActive { get; set; } = true;
+}
+
+public class CommissionEntry : BaseEntity
+{
+    public Guid EmployeeId { get; set; }
+    public Guid? BillId { get; set; }
+    public string? BillNumber { get; set; }
+    public decimal SaleAmount { get; set; }
+    public decimal CommissionRate { get; set; }
+    public decimal CommissionAmount { get; set; }
+    public string RuleType { get; set; } = "percentage";
+    public DateTime SaleDate { get; set; }
+    public string Status { get; set; } = "pending"; // pending, approved, paid
+    public Guid? CommissionRuleId { get; set; }
+    public string? Notes { get; set; }
+    public DateTime? PaidAt { get; set; }
+
+    public virtual Employee Employee { get; set; } = null!;
+}

@@ -32,6 +32,10 @@ public class AppDbContext : DbContext
     public DbSet<ExpenseCategory> ExpenseCategories => Set<ExpenseCategory>();
     public DbSet<Expense> Expenses => Set<Expense>();
     public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<NotificationTemplate> NotificationTemplates => Set<NotificationTemplate>();
+    public DbSet<NotificationLog> NotificationLogs => Set<NotificationLog>();
+    public DbSet<CommissionRule> CommissionRules => Set<CommissionRule>();
+    public DbSet<CommissionEntry> CommissionEntries => Set<CommissionEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -206,6 +210,46 @@ public class AppDbContext : DbContext
             entity.Property(e => e.ReferenceNumber).HasMaxLength(100);
             entity.HasOne(e => e.Customer).WithMany().HasForeignKey(e => e.CustomerId);
             entity.HasOne(e => e.Supplier).WithMany().HasForeignKey(e => e.SupplierId);
+        });
+
+        modelBuilder.Entity<NotificationTemplate>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.Type).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.Event).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Subject).HasMaxLength(255);
+            entity.Property(e => e.Body).IsRequired().HasMaxLength(2000);
+        });
+
+        modelBuilder.Entity<NotificationLog>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.RecipientType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.RecipientId).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.RecipientContact).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.Channel).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.Status).IsRequired().HasMaxLength(20);
+        });
+
+        modelBuilder.Entity<CommissionRule>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.Type).IsRequired().HasMaxLength(30);
+            entity.Property(e => e.Value).HasPrecision(18, 2);
+            entity.Property(e => e.MinBillAmount).HasPrecision(18, 2);
+            entity.Property(e => e.MaxBillAmount).HasPrecision(18, 2);
+        });
+
+        modelBuilder.Entity<CommissionEntry>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.SaleAmount).HasPrecision(18, 2);
+            entity.Property(e => e.CommissionRate).HasPrecision(18, 4);
+            entity.Property(e => e.CommissionAmount).HasPrecision(18, 2);
+            entity.Property(e => e.RuleType).IsRequired().HasMaxLength(30);
+            entity.HasOne(e => e.Employee).WithMany().HasForeignKey(e => e.EmployeeId);
         });
     }
 }

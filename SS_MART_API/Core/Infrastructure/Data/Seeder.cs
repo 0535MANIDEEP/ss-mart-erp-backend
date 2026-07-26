@@ -213,6 +213,34 @@ public static class Seeder
         var pay5 = new Payment { Id = Guid.NewGuid(), PaymentNumber = "PAY-0005", PaymentType = "make", SupplierId = supplier2, PaymentDate = DateTime.UtcNow.AddDays(-2), Amount = 25000, PaymentMode = "CHEQUE", ReferenceNumber = "CHQ-0042", Description = "Cheque payment to ITC Foods", CreatedBy = emp2.Id, CreatedAt = DateTime.UtcNow.AddDays(-2), UpdatedAt = DateTime.UtcNow.AddDays(-2) };
         db.Payments.AddRange(pay1, pay2, pay3, pay4, pay5);
 
+        // Notification templates
+        db.NotificationTemplates.AddRange(
+            new NotificationTemplate { Id = Guid.NewGuid(), Name = "Bill Receipt (SMS)", Type = "sms", Event = "bill_created", Subject = "Bill Receipt", Body = "Dear {{customer_name}}, your bill {{bill_number}} of ₹{{total_amount}} is generated. Thank you for shopping with SS Mart!", IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new NotificationTemplate { Id = Guid.NewGuid(), Name = "Payment Received (SMS)", Type = "sms", Event = "payment_received", Subject = "Payment Confirmation", Body = "Dear {{customer_name}}, we have received ₹{{amount}} against bill {{bill_number}}. Balance: ₹{{balance}}. Thank you!", IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new NotificationTemplate { Id = Guid.NewGuid(), Name = "Payment Reminder (SMS)", Type = "sms", Event = "payment_reminder", Subject = "Payment Reminder", Body = "Dear {{customer_name}}, you have an outstanding of ₹{{balance}}. Please clear your dues at the earliest. — SS Mart", IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new NotificationTemplate { Id = Guid.NewGuid(), Name = "Low Stock Alert (Email)", Type = "email", Event = "low_stock", Subject = "Low Stock Alert — {{product_name}}", Body = "Product {{product_name}} (SKU: {{sku}}) is running low. Current stock: {{current_stock}}. Reorder level: {{reorder_level}}.", IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new NotificationTemplate { Id = Guid.NewGuid(), Name = "Daily Sales Summary (Email)", Type = "email", Event = "daily_summary", Subject = "Daily Sales Summary — {{date}}", Body = "Total sales: ₹{{total_sales}}. Bills: {{bill_count}}. Average bill: ₹{{avg_bill}}. Top product: {{top_product}}.", IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new NotificationTemplate { Id = Guid.NewGuid(), Name = "Order Confirmation (WhatsApp)", Type = "whatsapp", Event = "order_confirmed", Subject = "Order Confirmed", Body = "Hi {{customer_name}}! Your order {{order_number}} is confirmed. Total: ₹{{total_amount}}. Expected delivery: {{delivery_date}}.", IsActive = false, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+        );
+
+        // Commission rules
+        var rule1Id = new Guid("40000000-0000-0000-0000-000000000001");
+        var rule2Id = new Guid("40000000-0000-0000-0000-000000000002");
+        var rule3Id = new Guid("40000000-0000-0000-0000-000000000003");
+
+        db.CommissionRules.AddRange(
+            new CommissionRule { Id = rule1Id, Name = "Standard 2%", Type = "percentage", Value = 2, IsDefault = true, IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new CommissionRule { Id = rule2Id, Name = "High-value 5%", Type = "percentage", Value = 5, MinBillAmount = 1000, IsDefault = false, IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new CommissionRule { Id = rule3Id, Name = "Fixed ₹10 per bill", Type = "fixed_per_bill", Value = 10, IsDefault = false, IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+        );
+
+        // Commission entries (seeded from existing bills)
+        db.CommissionEntries.AddRange(
+            new CommissionEntry { Id = Guid.NewGuid(), EmployeeId = emp1.Id, BillId = bill1.Id, BillNumber = bill1.BillNumber, SaleAmount = bill1.TotalAmount, CommissionRate = 2, CommissionAmount = 8.84m, RuleType = "percentage", SaleDate = bill1.BillDate, Status = "paid", CommissionRuleId = rule1Id, PaidAt = billDate1, CreatedAt = billDate1, UpdatedAt = billDate1 },
+            new CommissionEntry { Id = Guid.NewGuid(), EmployeeId = emp1.Id, BillId = bill2.Id, BillNumber = bill2.BillNumber, SaleAmount = bill2.TotalAmount, CommissionRate = 2, CommissionAmount = 3.24m, RuleType = "percentage", SaleDate = bill2.BillDate, Status = "approved", CommissionRuleId = rule1Id, CreatedAt = bill2Date, UpdatedAt = bill2Date },
+            new CommissionEntry { Id = Guid.NewGuid(), EmployeeId = emp2.Id, BillId = bill1.Id, BillNumber = bill1.BillNumber, SaleAmount = bill1.TotalAmount, CommissionRate = 5, CommissionAmount = 22.10m, RuleType = "percentage", SaleDate = bill1.BillDate, Status = "paid", CommissionRuleId = rule2Id, PaidAt = billDate1, CreatedAt = billDate1, UpdatedAt = billDate1 }
+        );
+
         db.SaveChanges();
     }
 
