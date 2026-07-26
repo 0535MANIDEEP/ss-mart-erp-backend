@@ -364,3 +364,24 @@ public class Expense : BaseEntity
 
     public virtual ExpenseCategory? ExpenseCategory { get; set; }
 }
+
+public class Payment : BaseEntity
+{
+    public string PaymentNumber { get; set; } = string.Empty;
+    public string PaymentType { get; set; } = "receive"; // receive (from customer) or make (to supplier)
+    public Guid? CustomerId { get; set; }
+    public Guid? SupplierId { get; set; }
+    public DateTime PaymentDate { get; set; }
+    public decimal Amount { get; set; }
+    public string PaymentMode { get; set; } = "CASH";
+    public string? ReferenceNumber { get; set; }
+    public string? Description { get; set; }
+    public Guid? ReferenceBillId { get; set; }
+    public Guid? ReferencePurchaseOrderId { get; set; }
+    public bool IsAdvance { get; set; }
+    public string Status { get; set; } = "completed";
+    public Guid CreatedBy { get; set; }
+
+    public virtual Customer? Customer { get; set; }
+    public virtual Supplier? Supplier { get; set; }
+}

@@ -205,6 +205,14 @@ public static class Seeder
         var exp6 = new Expense { Id = Guid.NewGuid(), ExpenseNumber = "EXP-0006", ExpenseCategoryId = expUtilities, ExpenseDate = DateTime.UtcNow.AddDays(-2), Amount = 1200, PaymentMode = "CASH", Payee = "Internet Provider", Description = "Broadband monthly plan", CreatedBy = emp2.Id, CreatedAt = DateTime.UtcNow.AddDays(-2), UpdatedAt = DateTime.UtcNow.AddDays(-2) };
         db.Expenses.AddRange(exp1, exp2, exp3, exp4, exp5, exp6);
 
+        // Sample payments
+        var pay1 = new Payment { Id = Guid.NewGuid(), PaymentNumber = "PAY-0001", PaymentType = "receive", CustomerId = customers[1].Id, PaymentDate = billDate1, Amount = 500, PaymentMode = "CASH", ReferenceBillId = bill1.Id, Description = "Cash payment for BILL-0001", CreatedBy = emp1.Id, CreatedAt = billDate1, UpdatedAt = billDate1 };
+        var pay2 = new Payment { Id = Guid.NewGuid(), PaymentNumber = "PAY-0002", PaymentType = "receive", CustomerId = customers[5].Id, PaymentDate = bill2Date, Amount = 162, PaymentMode = "UPI", ReferenceBillId = bill2.Id, Description = "UPI payment for BILL-0002", CreatedBy = emp1.Id, CreatedAt = bill2Date, UpdatedAt = bill2Date };
+        var pay3 = new Payment { Id = Guid.NewGuid(), PaymentNumber = "PAY-0003", PaymentType = "receive", CustomerId = customers[2].Id, PaymentDate = DateTime.UtcNow.AddDays(-7), Amount = 10000, PaymentMode = "BANK", IsAdvance = true, Description = "Advance payment from Amit Patel", CreatedBy = emp1.Id, CreatedAt = DateTime.UtcNow.AddDays(-7), UpdatedAt = DateTime.UtcNow.AddDays(-7) };
+        var pay4 = new Payment { Id = Guid.NewGuid(), PaymentNumber = "PAY-0004", PaymentType = "make", SupplierId = supplier1, PaymentDate = DateTime.UtcNow.AddDays(-4), Amount = 50000, PaymentMode = "BANK", ReferencePurchaseOrderId = null, Description = "Partial payment to HUL Distributor", CreatedBy = emp2.Id, CreatedAt = DateTime.UtcNow.AddDays(-4), UpdatedAt = DateTime.UtcNow.AddDays(-4) };
+        var pay5 = new Payment { Id = Guid.NewGuid(), PaymentNumber = "PAY-0005", PaymentType = "make", SupplierId = supplier2, PaymentDate = DateTime.UtcNow.AddDays(-2), Amount = 25000, PaymentMode = "CHEQUE", ReferenceNumber = "CHQ-0042", Description = "Cheque payment to ITC Foods", CreatedBy = emp2.Id, CreatedAt = DateTime.UtcNow.AddDays(-2), UpdatedAt = DateTime.UtcNow.AddDays(-2) };
+        db.Payments.AddRange(pay1, pay2, pay3, pay4, pay5);
+
         db.SaveChanges();
     }
 

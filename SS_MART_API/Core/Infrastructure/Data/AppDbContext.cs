@@ -31,6 +31,7 @@ public class AppDbContext : DbContext
     public DbSet<Setting> Settings => Set<Setting>();
     public DbSet<ExpenseCategory> ExpenseCategories => Set<ExpenseCategory>();
     public DbSet<Expense> Expenses => Set<Expense>();
+    public DbSet<Payment> Payments => Set<Payment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -194,6 +195,17 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Amount).HasColumnType("numeric(12,2)");
             entity.Property(e => e.Payee).HasMaxLength(255);
             entity.HasOne(e => e.ExpenseCategory).WithMany().HasForeignKey(e => e.ExpenseCategoryId);
+        });
+
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.PaymentNumber).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.PaymentType).IsRequired().HasMaxLength(20);
+            entity.Property(e => e.Amount).HasColumnType("numeric(12,2)");
+            entity.Property(e => e.ReferenceNumber).HasMaxLength(100);
+            entity.HasOne(e => e.Customer).WithMany().HasForeignKey(e => e.CustomerId);
+            entity.HasOne(e => e.Supplier).WithMany().HasForeignKey(e => e.SupplierId);
         });
     }
 }
