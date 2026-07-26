@@ -82,6 +82,9 @@ using (var scope = app.Services.CreateScope())
         });
         db.SaveChanges();
     }
+
+    // Seed sample data
+    Seeder.Seed(db);
 }
 
 // Configure pipeline

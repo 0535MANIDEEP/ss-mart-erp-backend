@@ -100,8 +100,8 @@ public class AuthController : ControllerBase
 
     private string GenerateJwtToken(Employee employee)
     {
-        var jwtSettings = _configuration.GetSection("JwtSettings");
-        var secretKey = jwtSettings["SecretKey"] ?? "SSMartDefaultSecretKey12345678901234";
+        var jwtSettings = _configuration.GetSection("Jwt");
+        var secretKey = jwtSettings["Key"] ?? "SSMartDefaultSecretKey12345678901234";
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
