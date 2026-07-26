@@ -157,7 +157,7 @@ public class EmployeesController : ControllerBase
         }
 
         attendance.ClockOutTime = DateTime.UtcNow;
-        attendance.HoursWorked = (attendance.ClockOutTime - attendance.ClockInTime).TotalHours;
+        attendance.HoursWorked = (attendance.ClockOutTime!.Value - attendance.ClockInTime).TotalHours;
         attendance.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();

@@ -92,10 +92,10 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("refresh")]
-    public async Task<ActionResult<LoginResponse>> RefreshToken(RefreshRequest request)
+    public ActionResult<LoginResponse> RefreshToken(RefreshRequest request)
     {
         // TODO: Implement refresh token logic
-        return NotImplemented();
+        return StatusCode(501);
     }
 
     private string GenerateJwtToken(Employee employee)

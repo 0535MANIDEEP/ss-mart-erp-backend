@@ -137,12 +137,26 @@ public class LoyaltyTransaction : BaseEntity
 
 public class Employee : BaseEntity
 {
-    public string Name { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
+    public string Username { get; set; } = string.Empty;
+    public string PasswordHash { get; set; } = string.Empty;
     public string? Phone { get; set; }
     public string? Email { get; set; }
     public string Role { get; set; } = "cashier";
     public string? Pin { get; set; }
+    public Guid? StoreId { get; set; }
     public bool IsActive { get; set; } = true;
+}
+
+public class Attendance : BaseEntity
+{
+    public Guid EmployeeId { get; set; }
+    public DateTime Date { get; set; }
+    public DateTime ClockInTime { get; set; }
+    public DateTime? ClockOutTime { get; set; }
+    public double? HoursWorked { get; set; }
+
+    public virtual Employee Employee { get; set; } = null!;
 }
 
 public class SyncQueue : BaseEntity

@@ -182,9 +182,9 @@ public class BillsController : ControllerBase
             BillNumber = await GenerateBillNumber(),
             CustomerId = originalBill.CustomerId,
             BillDate = DateTime.UtcNow,
-            Subtotal = request.Items.Sum(i => i.Quantity * i.UnitPrice),
+            Subtotal = request.Items.Sum(i => (decimal)i.Quantity * i.UnitPrice),
             TaxAmount = 0,
-            TotalAmount = request.Items.Sum(i => i.Quantity * i.UnitPrice),
+            TotalAmount = request.Items.Sum(i => (decimal)i.Quantity * i.UnitPrice),
             PaymentMode = "CASH",
             Status = "completed",
             IsReturn = true,
@@ -198,7 +198,7 @@ public class BillsController : ControllerBase
                 ProductId = i.ProductId,
                 Quantity = i.Quantity,
                 UnitPrice = i.UnitPrice,
-                TotalAmount = i.Quantity * i.UnitPrice
+                TotalAmount = (decimal)i.Quantity * i.UnitPrice
             }).ToList()
         };
 

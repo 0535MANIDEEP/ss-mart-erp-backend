@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<StockMovement> StockMovements => Set<StockMovement>();
     public DbSet<LoyaltyTransaction> LoyaltyTransactions => Set<LoyaltyTransaction>();
     public DbSet<Employee> Employees => Set<Employee>();
+    public DbSet<Attendance> Attendances => Set<Attendance>();
     public DbSet<SyncQueue> SyncQueues => Set<SyncQueue>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
@@ -63,6 +64,14 @@ public class AppDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.UnitPrice).HasColumnType("numeric(12,2)");
             entity.Property(e => e.TotalAmount).HasColumnType("numeric(12,2)");
+        });
+
+        modelBuilder.Entity<Attendance>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EmployeeId).IsRequired();
+            entity.Property(e => e.Date).IsRequired();
+            entity.Property(e => e.ClockInTime).IsRequired();
         });
     }
 }
